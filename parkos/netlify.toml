@@ -1,6 +1,7 @@
 [build]
-  publish = "parkos/public"
-  functions = "parkos/netlify/functions"
+  base = "parkos"
+  publish = "public"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/api"
