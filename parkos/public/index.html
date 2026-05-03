@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkOS — Smart Parking System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f14;
+    --bg2:      #13161e;
+    --bg3:      #1a1e29;
+    --border:   #252a38;
+    --text:     #e8eaf0;
+    --muted:    #6b7080;
+    --accent:   #f0c040;
+    --accent2:  #3d8ef0;
+    --success:  #3ecf6e;
+    --danger:   #e05555;
+    --mono:     'Space Mono', monospace;
+    --sans:     'DM Sans', sans-serif;
+    --radius:   10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: .3px;
+  }
+  nav button:hover { background: var(--bg3); color: var(--text); }
+  nav button.active { background: var(--bg3); color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  main { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  .page { display: none; animation: fadeIn .2s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* ── FORMS ── */
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 7px; font-weight: 500; }
+  input[type=text], select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type=text]:focus, select:focus { border-color: var(--accent); }
+  input[type=text]::placeholder { color: var(--muted); font-family: var(--mono); }
+  select option { background: var(--bg3); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 7px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); color: #0d0f14; }
+  .btn-primary:hover { background: #f8d060; transform: translateY(-1px); }
+  .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #e86868; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  /* ── ALERTS ── */
+  .alert {
+    padding: 14px 18px;
+    border-radius: 7px;
+    font-size: 14px;
+    margin-top: 16px;
+    display: none;
+    border-left: 3px solid;
+  }
+  .alert.show { display: block; animation: fadeIn .2s ease; }
+  .alert-success { background: rgba(62,207,110,.08); border-color: var(--success); color: var(--success); }
+  .alert-error   { background: rgba(224,85,85,.08);  border-color: var(--danger);  color: var(--danger); }
+
+  /* ── RESULT RECEIPT ── */
+  .receipt {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-top: 20px;
+    display: none;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .receipt.show { display: block; animation: fadeIn .3s ease; }
+  .receipt-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(255,255,255,.05);
+  }
+  .receipt-row:last-child { border: none; }
+  .receipt-row .key { color: var(--muted); }
+  .receipt-row .val { color: var(--text); }
+  .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .receipt-total .val { color: var(--accent); }
+
+  /* ── STAT CARDS ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; letter-spacing: .5px; }
+  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); }
+  .stat-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-card.highlight { border-color: rgba(240,192,64,.3); background: rgba(240,192,64,.04); }
+  .stat-card.highlight .stat-value { color: var(--accent); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--bg3); }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  .badge-car   { background: rgba(61,142,240,.15); color: #6aadff; }
+  .badge-bike  { background: rgba(62,207,110,.15);  color: var(--success); }
+  .badge-truck { background: rgba(240,192,64,.15);  color: var(--accent); }
+  .badge-active { background: rgba(62,207,110,.15); color: var(--success); }
+  .badge-done  { background: rgba(107,112,128,.15); color: var(--muted); }
+
+  /* ── SLOT BOARD ── */
+  .slot-section { margin-bottom: 28px; }
+  .slot-section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slot-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .slot-box {
+    width: 72px;
+    height: 52px;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid;
+    transition: all .15s;
+    cursor: default;
+  }
+  .slot-box .slot-icon { font-size: 10px; font-weight: 400; color: inherit; opacity: .7; margin-bottom: 2px; }
+  .slot-free     { background: rgba(62,207,110,.08); border-color: rgba(62,207,110,.3);  color: var(--success); }
+  .slot-occupied { background: rgba(224,85,85,.08);  border-color: rgba(224,85,85,.25);  color: var(--danger); }
+  .slot-summary  { display: flex; gap: 28px; margin-bottom: 28px; }
+  .ss-item { text-align: center; }
+  .ss-val  { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+  .ss-lbl  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── LOADER ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: none;
+  }
+  .spinner.show { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── SECTION DIVIDER ── */
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 32px 0;
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    nav button { padding: 6px 10px; font-size: 12px; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    main { padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ParkOS <span>// v1.0</span></div>
+  <nav>
+    <button class="active" onclick="showPage('checkin')">Check-In</button>
+    <button onclick="showPage('checkout')">Check-Out</button>
+    <button onclick="showPage('slots')">Slots</button>
+    <button onclick="showPage('history')">History</button>
+    <button onclick="showPage('dashboard')">Dashboard</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ══ CHECK-IN ══════════════════════════════════════════ -->
+  <div id="page-checkin" class="page active">
+    <h1>Vehicle Check-In</h1>
+    <p class="subtitle">Register vehicle entry and assign a parking slot automatically.</p>
+
+    <div class="card">
+      <div class="card-title">Entry Details</div>
+      <div class="form-group">
+        <label>Vehicle Number</label>
+        <input type="text" id="ci-number" placeholder="e.g. KA01AB1234" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label>Vehicle Type</label>
+        <select id="ci-type">
+          <option value="Car">Car</option>
+          <option value="Bike">Bike</option>
+          <option value="Truck">Truck</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="doCheckin()">
+        <span id="ci-spinner" class="spinner"></span>
+        Check In Vehicle
+      </button>
+      <div id="ci-alert" class="alert"></div>
+    </div>
+
+    <div id="ci-receipt" class="receipt">
+      <div class="receipt-title">★ CHECK-IN CONFIRMED</div>
+      <div id="ci-receipt-body"></div>
+    </div>
+  </div>
+
+
+  <!-- ══ CHECK-OUT ═════════════════════════════════════════ -->
+  <div id="page-checkout" class="page">
+    <h1>Vehicle Check-Out</h1>
+    <p class="subtitle">Process vehicle exit, calculate duration and apply loyalty discount.</p>
+
+    <div class="card">
+      <div class="card-title">Exit Details</div>
+      <div class="form-group">
+        <label>Vehicle Number</label>
+        <input type="text" id="co-number" placeholder="e.g. KA01AB1234" style="text-transform:uppercase">
+      </div>
+      <button class="btn btn-danger" onclick="doCheckout()">
+        <span id="co-spinner" class="spinner"></span>
+        Process Check-Out
+      </button>
+      <div id="co-alert" class="alert"></div>
+    </div>
+
+    <div id="co-receipt" class="receipt">
+      <div class="receipt-title">★ PAYMENT RECEIPT</div>
+      <div id="co-receipt-body"></div>
+    </div>
+  </div>
+
+
+  <!-- ══ SLOTS ═════════════════════════════════════════════ -->
+  <div id="page-slots" class="page">
+    <h1>Slot Availability</h1>
+    <p class="subtitle">Live view of all parking slots across vehicle types.</p>
+
+    <div id="slots-summary" class="slot-summary"></div>
+    <div id="slots-board"></div>
+
+    <button class="btn btn-secondary" onclick="loadSlots()" style="margin-top:8px">↻ Refresh</button>
+  </div>
+
+
+  <!-- ══ HISTORY ════════════════════════════════════════════ -->
+  <div id="page-history" class="page">
+    <h1>Visit History</h1>
+    <p class="subtitle">Look up all past parking visits for any vehicle.</p>
+
+    <div class="card">
+      <div class="card-title">Search Vehicle</div>
+      <div class="form-group">
+        <label>Vehicle Number</label>
+        <input type="text" id="hist-number" placeholder="e.g. KA01AB1234" style="text-transform:uppercase"
+               onkeydown="if(event.key==='Enter') loadHistory()">
+      </div>
+      <button class="btn btn-secondary" onclick="loadHistory()">
+        <span id="hist-spinner" class="spinner"></span>
+        Search History
+      </button>
+      <div id="hist-alert" class="alert"></div>
+    </div>
+
+    <div id="hist-result" style="display:none">
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr; margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-label">Vehicle</div>
+          <div class="stat-value" id="hist-vehicle" style="font-size:18px"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Visits</div>
+          <div class="stat-value" id="hist-count"></div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-label">Total Spent</div>
+          <div class="stat-value" id="hist-spent"></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Duration</th><th>Amount</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ DASHBOARD ══════════════════════════════════════════ -->
+  <div id="page-dashboard" class="page">
+    <h1>Admin Dashboard</h1>
+    <p class="subtitle">Today's stats, revenue, and recent activity.</p>
+
+    <div id="dash-content">
+      <div style="color:var(--muted); font-family:var(--mono); font-size:13px">Loading dashboard...</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── ONLY THIS LINE CHANGED from the original ──
+  const API = '/api';
+
+// ── PAGE NAVIGATION ──────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach((b,i) => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes(id));
+  });
+  document.getElementById('page-' + id).classList.add('active');
+  if (id === 'slots') loadSlots();
+  if (id === 'dashboard') loadDashboard();
+}
+
+// ── ALERTS ──────────────────────────────────────────────
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} show`;
+  el.textContent = msg;
+}
+function hideAlert(id) {
+  document.getElementById(id).className = 'alert';
+}
+
+// ── RECEIPT ─────────────────────────────────────────────
+function buildReceipt(rows, total) {
+  let html = rows.map(([k,v]) =>
+    `<div class="receipt-row"><span class="key">${k}</span><span class="val">${v}</span></div>`
+  ).join('');
+  if (total) {
+    html += `<div class="receipt-total"><span>AMOUNT DUE</span><span class="val">₹${total}</span></div>`;
+  }
+  return html;
+}
+
+// ── CHECK-IN ─────────────────────────────────────────────
+async function doCheckin() {
+  const num  = document.getElementById('ci-number').value.trim().toUpperCase();
+  const type = document.getElementById('ci-type').value;
+  hideAlert('ci-alert');
+  document.getElementById('ci-receipt').classList.remove('show');
+  if (!num) { showAlert('ci-alert','Please enter a vehicle number.','error'); return; }
+
+  const sp = document.getElementById('ci-spinner');
+  sp.classList.add('show');
+
+  const fd = new FormData();
+  fd.append('action','checkin');
+  fd.append('vehicle_number', num);
+  fd.append('vehicle_type', type);
+
+  const res = await fetch(API, { method:'POST', body: fd });
+  const data = await res.json();
+  sp.classList.remove('show');
+
+  if (!data.success) { showAlert('ci-alert', data.message, 'error'); return; }
+
+  document.getElementById('ci-receipt-body').innerHTML = buildReceipt([
+    ['Vehicle Number', data.vehicle_number || num],
+    ['Slot Assigned',  data.slot_number],
+    ['Entry Time',     data.entry_time],
+    ['Visit Count',    '#' + data.total_visits],
+    ['Type',           type]
+  ]);
+  document.getElementById('ci-receipt').classList.add('show');
+  showAlert('ci-alert', data.message, 'success');
+  document.getElementById('ci-number').value = '';
+}
+
+// ── CHECK-OUT ────────────────────────────────────────────
+async function doCheckout() {
+  const num = document.getElementById('co-number').value.trim().toUpperCase();
+  hideAlert('co-alert');
+  document.getElementById('co-receipt').classList.remove('show');
+  if (!num) { showAlert('co-alert','Please enter a vehicle number.','error'); return; }
+
+  const sp = document.getElementById('co-spinner');
+  sp.classList.add('show');
+
+  const fd = new FormData();
+  fd.append('action','checkout');
+  fd.append('vehicle_number', num);
+
+  const res = await fetch(API, { method:'POST', body: fd });
+  const data = await res.json();
+  sp.classList.remove('show');
+
+  if (!data.success) { showAlert('co-alert', data.message, 'error'); return; }
+
+  document.getElementById('co-receipt-body').innerHTML = buildReceipt([
+    ['Vehicle Number', data.vehicle_number],
+    ['Entry Time',     data.entry_time],
+    ['Exit Time',      data.exit_time],
+    ['Duration',       data.duration],
+    ['Total Visits',   data.past_visits],
+    ['Discount',       data.discount_label],
+  ], data.amount_paid);
+
+  document.getElementById('co-receipt').classList.add('show');
+  showAlert('co-alert', data.message, 'success');
+  document.getElementById('co-number').value = '';
+}
+
+// ── SLOTS ────────────────────────────────────────────────
+async function loadSlots() {
+  const res  = await fetch(API + '?action=slots');
+  const data = await res.json();
+  if (!data.success) return;
+
+  const types = Object.values(data.summary);
+  const totalSlots = types.reduce((s,t) => s + parseInt(t.total), 0);
+  const totalFree  = types.reduce((s,t) => s + parseInt(t.available), 0);
+
+  document.getElementById('slots-summary').innerHTML = `
+    <div class="ss-item"><div class="ss-val">${totalSlots}</div><div class="ss-lbl">Total Slots</div></div>
+    <div class="ss-item"><div class="ss-val" style="color:var(--success)">${totalFree}</div><div class="ss-lbl">Available</div></div>
+    <div class="ss-item"><div class="ss-val" style="color:var(--danger)">${totalSlots-totalFree}</div><div class="ss-lbl">Occupied</div></div>
+  `;
+
+  const grouped = {};
+  data.slots.forEach(s => {
+    if (!grouped[s.slot_type]) grouped[s.slot_type] = [];
+    grouped[s.slot_type].push(s);
+  });
+
+  const icons = { Car:'🚗', Bike:'🏍', Truck:'🚛' };
+  let html = '';
+  for (const [type, slots] of Object.entries(grouped)) {
+    const avail = slots.filter(s => !s.is_occupied).length;
+    html += `
+      <div class="slot-section">
+        <div class="slot-section-title">
+          ${icons[type] || ''} ${type} Slots
+          <span style="color:var(--success)">${avail} free</span>
+          / <span>${slots.length} total</span>
+        </div>
+        <div class="slot-grid">
+          ${slots.map(s => `
+            <div class="slot-box ${s.is_occupied ? 'slot-occupied' : 'slot-free'}">
+              <div class="slot-icon">${s.is_occupied ? '●' : '○'}</div>
+              ${s.slot_number}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }
+  document.getElementById('slots-board').innerHTML = html;
+}
+
+// ── HISTORY ──────────────────────────────────────────────
+async function loadHistory() {
+  const num = document.getElementById('hist-number').value.trim().toUpperCase();
+  hideAlert('hist-alert');
+  document.getElementById('hist-result').style.display = 'none';
+  if (!num) { showAlert('hist-alert','Please enter a vehicle number.','error'); return; }
+
+  const sp = document.getElementById('hist-spinner');
+  sp.classList.add('show');
+
+  const fd = new FormData();
+  fd.append('action','history');
+  fd.append('vehicle_number', num);
+
+  const res  = await fetch(API, { method:'POST', body: fd });
+  const data = await res.json();
+  sp.classList.remove('show');
+
+  if (!data.success) { showAlert('hist-alert', data.message, 'error'); return; }
+
+  document.getElementById('hist-vehicle').textContent = data.vehicle;
+  document.getElementById('hist-count').textContent   = data.total_visits;
+  document.getElementById('hist-spent').textContent   = '₹' + data.total_spent;
+
+  const rows = data.visits.map((v,i) => {
+    const active = !v.exit_time;
+    const dur = v.duration_mins ? (v.duration_mins >= 60
+      ? Math.floor(v.duration_mins/60)+'h '+(v.duration_mins%60)+'m'
+      : v.duration_mins+'m') : '—';
+    return `<tr>
+      <td style="font-family:var(--mono);color:var(--muted)">${i+1}</td>
+      <td style="font-family:var(--mono)">${v.slot_number}</td>
+      <td>${fmtDate(v.entry_time)}</td>
+      <td>${v.exit_time ? fmtDate(v.exit_time) : '—'}</td>
+      <td style="font-family:var(--mono)">${dur}</td>
+      <td style="font-family:var(--mono)">${v.amount_paid ? '₹'+parseFloat(v.amount_paid).toFixed(2) : '—'}</td>
+      <td><span class="badge ${active ? 'badge-active' : 'badge-done'}">${active ? 'Active' : 'Done'}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('hist-tbody').innerHTML = rows;
+  document.getElementById('hist-result').style.display = 'block';
+}
+
+// ── DASHBOARD ────────────────────────────────────────────
+async function loadDashboard() {
+  const res  = await fetch(API + '?action=dashboard');
+  const data = await res.json();
+  if (!data.success) return;
+
+  const t  = data.today;
+  const at = data.all_time;
+
+  let slotHtml = data.slots.map(s => `
+    <div class="stat-card">
+      <div class="stat-label">${s.slot_type} Slots</div>
+      <div class="stat-value">${s.available}<span style="font-size:16px;color:var(--muted)">/${s.total}</span></div>
+      <div class="stat-sub">free</div>
+    </div>`).join('');
+
+  let recentHtml = data.recent_visits.map(v => `
+    <tr>
+      <td><span class="badge badge-${v.vehicle_type.toLowerCase()}">${v.vehicle_type}</span></td>
+      <td style="font-family:var(--mono)">${v.vehicle_number}</td>
+      <td style="font-family:var(--mono)">${v.slot_number}</td>
+      <td>${fmtDate(v.entry_time)}</td>
+      <td>${v.exit_time ? fmtDate(v.exit_time) : '<span style="color:var(--success)">Active</span>'}</td>
+      <td style="font-family:var(--mono)">${v.amount_paid ? '₹'+parseFloat(v.amount_paid).toFixed(2) : '—'}</td>
+    </tr>`).join('');
+
+  let freqHtml = data.frequent.length
+    ? data.frequent.map((f,i) => `
+      <tr>
+        <td style="font-family:var(--mono);color:var(--accent)">#${i+1}</td>
+        <td style="font-family:var(--mono)">${f.vehicle_number}</td>
+        <td><span class="badge badge-${f.vehicle_type.toLowerCase()}">${f.vehicle_type}</span></td>
+        <td style="font-family:var(--mono)">${f.total_visits}</td>
+        <td style="font-family:var(--mono)">₹${parseFloat(f.total_spent).toFixed(2)}</td>
+        <td>${fmtDate(f.last_visit)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">No frequent visitors yet</td></tr>';
+
+  document.getElementById('dash-content').innerHTML = `
+    <div style="margin-bottom:8px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Today</div>
+    <div class="stat-grid" style="margin-bottom:28px">
+      <div class="stat-card"><div class="stat-label">Vehicles In</div><div class="stat-value">${t.vehicles_today}</div></div>
+      <div class="stat-card"><div class="stat-label">Visits</div><div class="stat-value">${t.visits_today}</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Revenue</div><div class="stat-value">₹${parseFloat(t.revenue_today).toFixed(0)}</div></div>
+    </div>
+
+    <div style="margin-bottom:8px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">All Time</div>
+    <div class="stat-grid" style="margin-bottom:28px">
+      <div class="stat-card"><div class="stat-label">Total Vehicles</div><div class="stat-value">${at.total_vehicles}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Visits</div><div class="stat-value">${at.total_visits}</div></div>
+      <div class="stat-card highlight"><div class="stat-label">Total Revenue</div><div class="stat-value">₹${parseFloat(at.total_revenue).toFixed(0)}</div></div>
+    </div>
+
+    <div style="margin-bottom:8px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Current Slot Status</div>
+    <div class="stat-grid" style="margin-bottom:28px">${slotHtml}</div>
+
+    <div class="divider"></div>
+
+    <div class="card-title">Recent Activity</div>
+    <div class="table-wrap" style="margin-bottom:28px">
+      <table>
+        <thead><tr><th>Type</th><th>Vehicle</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Amount</th></tr></thead>
+        <tbody>${recentHtml}</tbody>
+      </table>
+    </div>
+
+    <div class="card-title">Frequent Visitors</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rank</th><th>Vehicle</th><th>Type</th><th>Visits</th><th>Total Spent</th><th>Last Visit</th></tr></thead>
+        <tbody>${freqHtml}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ── UTILS ────────────────────────────────────────────────
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})
+    + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+</script>
+</body>
+</html>
