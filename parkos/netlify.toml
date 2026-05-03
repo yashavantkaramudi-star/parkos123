@@ -1,9 +1,7 @@
 [build]
+  command = "npm --prefix parkos/netlify/functions install"
   publish = "parkos/public"
   functions = "parkos/netlify/functions"
-
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
 
 [[redirects]]
   from = "/api"
