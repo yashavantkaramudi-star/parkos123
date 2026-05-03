@@ -1,8 +1,0 @@
-{
-  "name": "parkos-netlify",
-  "version": "1.0.0",
-  "description": "Smart Parking System - Netlify deployment",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
-}
